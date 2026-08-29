@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fourier Analyzer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Fourier Analyzer</h1>
+    <nav>
+      <button class="tab-btn active" data-tab="merger">Sine Wave Merger</button>
+      <button class="tab-btn" data-tab="signature">Signature Animation</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="merger" class="tab-panel active">
+      <p class="hint">Add sine waves with their own amplitude, frequency and phase. The top chart shows every input wave, the bottom chart shows their sum.</p>
+      <div class="panel-controls">
+        <button id="addWaveBtn">+ Add wave</button>
+        <label><input type="checkbox" id="animateToggle" checked> Animate</label>
+      </div>
+      <div id="waveList"></div>
+      <div class="canvas-group">
+        <h3>Input waves</h3>
+        <canvas id="inputsCanvas" width="900" height="200"></canvas>
+        <h3>Merged output</h3>
+        <canvas id="outputCanvas" width="900" height="240"></canvas>
+      </div>
+    </section>
+
+    <section id="signature" class="tab-panel">
+      <p class="hint">Draw your signature on the left, then compute its Fourier series and watch rotating epicycles redraw it on the right.</p>
+      <div class="panel-controls">
+        <button id="clearSigBtn">Clear</button>
+        <button id="computeSigBtn">Compute Fourier</button>
+        <button id="animateSigBtn" disabled>Animate</button>
+        <label>Terms
+          <input type="range" id="termsRange" min="2" max="150" value="60">
+          <span id="termsVal">60</span>
+        </label>
+        <label>Speed
+          <input type="range" id="speedRange" min="1" max="10" value="3">
+        </label>
+        <label><input type="checkbox" id="showCirclesToggle" checked> Show epicycles</label>
+      </div>
+      <div class="canvas-group side-by-side">
+        <div>
+          <h3>Draw here</h3>
+          <canvas id="drawCanvas" width="440" height="440"></canvas>
+        </div>
+        <div>
+          <h3>Fourier reconstruction</h3>
+          <canvas id="fourierCanvas" width="440" height="440"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
