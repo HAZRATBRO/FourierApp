@@ -10,10 +10,29 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
   });
 });
 
+// The canvas "screens" are a fixed dark CRT tube in both page themes, so
+// their drawing colors are read once from the (theme-invariant) tokens.
+const rootStyle = getComputedStyle(document.documentElement);
+const cssVar = (name) => rootStyle.getPropertyValue(name).trim();
+const SCREEN_GRID = cssVar("--screen-grid") || "rgba(255,255,255,0.06)";
+const SCREEN_MID = cssVar("--screen-mid") || "rgba(255,255,255,0.14)";
+const ACCENT = cssVar("--accent") || "#e8a33d";
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function drawScreenGrid(ctx, w, h, step = 30) {
+  ctx.strokeStyle = SCREEN_GRID;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = step; x < w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+  for (let y = step; y < h; y += step) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+  ctx.stroke();
+}
+
 // ============================================================
 // Sine Wave Merger
 // ============================================================
-const WAVE_COLORS = ["#6ea8fe", "#f78c6b", "#7ee787", "#f5c542", "#e879f9", "#ff7b7b"];
+const WAVE_COLORS = ["#5b8def", "#ef7d63", "#4fb286", "#c98bdb", "#e0c34f", "#63c2d6"];
 
 const waveMerger = {
   waves: [],
@@ -89,13 +108,16 @@ const waveMerger = {
     inCtx.clearRect(0, 0, iw, ih);
     outCtx.clearRect(0, 0, ow, oh);
 
+    drawScreenGrid(inCtx, iw, ih);
+    drawScreenGrid(outCtx, ow, oh);
+
     // midlines
-    inCtx.strokeStyle = "#2a3150";
+    inCtx.strokeStyle = SCREEN_MID;
     inCtx.beginPath();
     inCtx.moveTo(0, ih / 2);
     inCtx.lineTo(iw, ih / 2);
     inCtx.stroke();
-    outCtx.strokeStyle = "#2a3150";
+    outCtx.strokeStyle = SCREEN_MID;
     outCtx.beginPath();
     outCtx.moveTo(0, oh / 2);
     outCtx.lineTo(ow, oh / 2);
@@ -118,7 +140,7 @@ const waveMerger = {
 
     const maxSum = Math.max(1, this.waves.reduce((s, w) => s + w.amp, 0));
     const outAmpScale = (oh / 2 - 10) / maxSum;
-    outCtx.strokeStyle = "#6ea8fe";
+    outCtx.strokeStyle = ACCENT;
     outCtx.lineWidth = 2;
     outCtx.beginPath();
     for (let x = 0; x <= ow; x++) {
@@ -166,8 +188,9 @@ function canvasPoint(evt) {
 
 function redrawStroke() {
   drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  drawScreenGrid(drawCtx, drawCanvas.width, drawCanvas.height, 40);
   if (rawPoints.length < 2) return;
-  drawCtx.strokeStyle = "#e8eaf5";
+  drawCtx.strokeStyle = "#edf1f7";
   drawCtx.lineWidth = 2.5;
   drawCtx.lineJoin = "round";
   drawCtx.lineCap = "round";
@@ -194,9 +217,14 @@ clearSigBtn.addEventListener("click", () => {
   rawPoints = [];
   fourierState = null;
   animateSigBtn.disabled = true;
-  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  if (animId) { cancelAnimationFrame(animId); animId = null; animateSigBtn.textContent = "Animate"; }
+  redrawStroke();
   fourierCtx.clearRect(0, 0, fourierCanvas.width, fourierCanvas.height);
+  drawScreenGrid(fourierCtx, fourierCanvas.width, fourierCanvas.height, 40);
 });
+
+redrawStroke();
+drawScreenGrid(fourierCtx, fourierCanvas.width, fourierCanvas.height, 40);
 
 termsRange.addEventListener("input", () => { termsVal.textContent = termsRange.value; });
 
@@ -301,6 +329,7 @@ function drawFourierFrame(t) {
   const cy = fourierCanvas.height / 2;
 
   fourierCtx.clearRect(0, 0, fourierCanvas.width, fourierCanvas.height);
+  drawScreenGrid(fourierCtx, fourierCanvas.width, fourierCanvas.height, 40);
 
   let x = cx, y = cy;
   const showCircles = showCirclesToggle.checked;
@@ -312,14 +341,14 @@ function drawFourierFrame(t) {
     y += amp * Math.sin(angle);
 
     if (showCircles && amp > 0.5) {
-      fourierCtx.strokeStyle = "rgba(110,168,254,0.25)";
+      fourierCtx.strokeStyle = "rgba(255,255,255,0.18)";
       fourierCtx.lineWidth = 1;
       fourierCtx.beginPath();
       fourierCtx.arc(prevX, prevY, amp, 0, Math.PI * 2);
       fourierCtx.stroke();
     }
     if (showCircles) {
-      fourierCtx.strokeStyle = "rgba(232,234,245,0.5)";
+      fourierCtx.strokeStyle = "rgba(237,241,247,0.5)";
       fourierCtx.beginPath();
       fourierCtx.moveTo(prevX, prevY);
       fourierCtx.lineTo(x, y);
@@ -329,7 +358,7 @@ function drawFourierFrame(t) {
 
   trail.push({ x, y });
   if (trail.length > 1) {
-    fourierCtx.strokeStyle = "#7ee787";
+    fourierCtx.strokeStyle = ACCENT;
     fourierCtx.lineWidth = 2;
     fourierCtx.beginPath();
     fourierCtx.moveTo(trail[0].x, trail[0].y);
@@ -337,7 +366,7 @@ function drawFourierFrame(t) {
     fourierCtx.stroke();
   }
 
-  fourierCtx.fillStyle = "#f78c6b";
+  fourierCtx.fillStyle = "#63c2d6";
   fourierCtx.beginPath();
   fourierCtx.arc(x, y, 3, 0, Math.PI * 2);
   fourierCtx.fill();
@@ -346,9 +375,11 @@ function drawFourierFrame(t) {
 // ============================================================
 // Main render loop (wave merger only; signature animates via its own rAF)
 // ============================================================
+const animateToggleEl = document.getElementById("animateToggle");
+if (prefersReducedMotion) animateToggleEl.checked = false;
+
 function mainLoop() {
-  const animate = document.getElementById("animateToggle").checked;
-  if (animate) waveMerger.time += 0.02;
+  if (animateToggleEl.checked) waveMerger.time += 0.02;
   waveMerger.draw();
   requestAnimationFrame(mainLoop);
 }

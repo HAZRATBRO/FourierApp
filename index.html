@@ -4,20 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fourier Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
+    <p class="eyebrow">Signal Analysis Tool</p>
     <h1>Fourier Analyzer</h1>
+    <p class="subtitle">Synthesize signals by summing sine waves, then reverse the process — decompose a hand-drawn signature into rotating vectors and watch them redraw it.</p>
     <nav>
-      <button class="tab-btn active" data-tab="merger">Sine Wave Merger</button>
-      <button class="tab-btn" data-tab="signature">Signature Animation</button>
+      <button class="tab-btn active" data-tab="merger">Wave merger</button>
+      <button class="tab-btn" data-tab="signature">Signature</button>
     </nav>
   </header>
 
   <main>
     <section id="merger" class="tab-panel active">
-      <p class="hint">Add sine waves with their own amplitude, frequency and phase. The top chart shows every input wave, the bottom chart shows their sum.</p>
+      <p class="hint">Add sine waves with their own amplitude, frequency and phase. The top screen shows every input wave; the bottom screen shows their sum.</p>
       <div class="panel-controls">
         <button id="addWaveBtn">+ Add wave</button>
         <label><input type="checkbox" id="animateToggle" checked> Animate</label>
@@ -25,9 +30,9 @@
       <div id="waveList"></div>
       <div class="canvas-group">
         <h3>Input waves</h3>
-        <canvas id="inputsCanvas" width="900" height="200"></canvas>
+        <div class="screen"><canvas id="inputsCanvas" width="900" height="200"></canvas></div>
         <h3>Merged output</h3>
-        <canvas id="outputCanvas" width="900" height="240"></canvas>
+        <div class="screen"><canvas id="outputCanvas" width="900" height="240"></canvas></div>
       </div>
     </section>
 
@@ -49,11 +54,11 @@
       <div class="canvas-group side-by-side">
         <div>
           <h3>Draw here</h3>
-          <canvas id="drawCanvas" width="440" height="440"></canvas>
+          <div class="screen"><canvas id="drawCanvas" width="440" height="440"></canvas></div>
         </div>
         <div>
           <h3>Fourier reconstruction</h3>
-          <canvas id="fourierCanvas" width="440" height="440"></canvas>
+          <div class="screen"><canvas id="fourierCanvas" width="440" height="440"></canvas></div>
         </div>
       </div>
     </section>
